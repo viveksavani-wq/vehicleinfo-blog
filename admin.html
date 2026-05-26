@@ -310,11 +310,11 @@ _Powered by VehicleInfo AI_</textarea>
       <div class="card">
         <div class="card-title">🔑 Anthropic API</div>
         <div class="form-row">
-          <label>Gemini API Key (Google AI - Free!)</label>
-          <input type="password" id="apiKeyInput" placeholder="AIzaSy...">
+          <label>Groq API Key (Free!)</label>
+          <input type="password" id="apiKeyInput" placeholder="gsk_...">
         </div>
         <button class="btn btn-primary" onclick="saveApiKey()">💾 Save API Key</button>
-        <p style="font-size:12px;color:var(--muted);margin-top:8px;">Get your FREE key at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--blue);">aistudio.google.com/apikey</a></p>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;">Get your FREE key at <a href="https://console.groq.com" target="_blank" style="color:var(--blue);">console.groq.com</a></p>
       </div>
 
       <div class="card">
@@ -430,14 +430,14 @@ Respond ONLY with valid JSON (no markdown, no backticks, no extra text):
 {"title":"engaging SEO title","excerpt":"2 sentence compelling summary for preview","body":"full HTML article using only h3 p ul li tags, minimum 500 words, include practical steps and tips"}`;
 
   try {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 1500 } })
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: 'llama-3.3-70b-versatile', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const text = data.choices?.[0]?.message?.content || '';
     const article = JSON.parse(text.replace(/```json|```/g,'').trim());
 
     generatedPost = { ...article, category: cat, date: new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}), dateRaw: new Date().toISOString(), readTime: Math.ceil(article.body.replace(/<[^>]+>/g,'').split(' ').length / 200) };
