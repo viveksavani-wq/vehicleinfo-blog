@@ -243,12 +243,64 @@ nav{
   box-shadow:0 5px 15px rgba(0,0,0,0.05);
 }
 
-.cat-btn:hover,
-.cat-btn.active{
-  background:linear-gradient(135deg,#2563eb,#1d4ed8);
-  color:white;
+/* DEFAULT */
+.cat-btn{
+  border:none;
+  padding:10px 18px;
+  border-radius:999px;
+  background:white;
+  font-size:13px;
+  font-weight:600;
+  color:var(--text-muted);
+  cursor:pointer;
+  transition:.3s;
+  box-shadow:0 5px 15px rgba(0,0,0,0.05);
+}
 
+/* HOVER */
+.cat-btn:hover{
   transform:translateY(-2px);
+}
+
+/* ACTIVE COLORS */
+
+.cat-btn.active{
+  color:white;
+}
+
+/* ALL POSTS */
+.cat-btn:nth-child(1).active{
+  background:linear-gradient(135deg,#111827,#374151);
+}
+
+/* RC */
+.cat-btn:nth-child(2).active{
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+}
+
+/* CHALLAN */
+.cat-btn:nth-child(3).active{
+  background:linear-gradient(135deg,#dc2626,#ef4444);
+}
+
+/* INSURANCE */
+.cat-btn:nth-child(4).active{
+  background:linear-gradient(135deg,#059669,#10b981);
+}
+
+/* FASTAG */
+.cat-btn:nth-child(5).active{
+  background:linear-gradient(135deg,#7c3aed,#8b5cf6);
+}
+
+/* CAR SALE */
+.cat-btn:nth-child(6).active{
+  background:linear-gradient(135deg,#ea580c,#fb923c);
+}
+
+/* OWNER */
+.cat-btn:nth-child(7).active{
+  background:linear-gradient(135deg,#db2777,#f472b6);
 }
 
 /* ================= MAIN LAYOUT ================= */
