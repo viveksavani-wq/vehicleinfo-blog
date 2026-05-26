@@ -640,37 +640,28 @@ function saveTelegramSettings() {
   showToast('✅ Telegram settings saved!');
 }
 
-async function sendTelegramNotification(post) {
+function sendTelegramMsg(token, chatId, text) {
+  const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${encodeURIComponent(chatId)}&text=${encodeURIComponent(text)}`;
+  const img = new Image();
+  img.src = url;
+  showToast('✈️ Telegram message sent!');
+  bumpWAStat();
+}
+
+function sendTelegramNotification(post) {
   const token = localStorage.getItem('vb_tgtoken');
   const chatId = localStorage.getItem('vb_tgchatid');
   if (!token || !chatId) return;
-  const template = localStorage.getItem('vb_tgtemplate') || '🚗 New Blog!\n\n{title}\n\n{excerpt}';
+  const template = localStorage.getItem('vb_tgtemplate') || '🚗 New Blog Published!\n\n{title}\n\n{excerpt}';
   const text = template.replace('{title}', post.title).replace('{excerpt}', post.excerpt);
-  try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'HTML' })
-    });
-    showToast('✈️ Telegram message sent!');
-    bumpWAStat();
-  } catch(e) { showToast('Telegram error: ' + e.message, 'error'); }
+  sendTelegramMsg(token, chatId, text);
 }
 
-async function testTelegram() {
+function testTelegram() {
   const token = document.getElementById('tgToken').value.trim();
   const chatId = document.getElementById('tgChatId').value.trim();
   if (!token || !chatId) { showToast('Enter Token and Chat ID first!', 'error'); return; }
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ chat_id: chatId, text: '🚗 VehicleInfo Blog\n\nTest message! ✅ Telegram alerts are working!' })
-    });
-    const d = await res.json();
-    if (d.ok) showToast('✅ Test message sent!');
-    else showToast('Error: ' + d.description, 'error');
-  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+  sendTelegramMsg(token, chatId, '🚗 VehicleInfo Blog - Test message! ✅ Telegram alerts are working!');
 }
 
 // ─── INIT ───────────────────────────────────
