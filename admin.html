@@ -142,6 +142,7 @@ textarea{resize:vertical;min-height:100px;}
       <div class="sidebar-label">Settings</div>
       <button class="side-btn" onclick="showPage('settings',this)">⚙️ Settings</button>
       <button class="side-btn" onclick="showPage('whatsapp',this)">📱 WhatsApp Setup</button>
+      <button class="side-btn" onclick="showPage('telegram',this)">✈️ Telegram Setup</button>
     </div>
   </div>
 
@@ -345,15 +346,53 @@ _Powered by VehicleInfo AI_</textarea>
     </div>
 
   </div>
+
+    <!-- TELEGRAM PAGE -->
+    <div class="page" id="page-telegram">
+      <div class="page-title">✈️ Telegram Setup</div>
+      <div class="page-sub">Get notified on Telegram when a new blog is published</div>
+
+      <div class="card">
+        <div class="card-title">🤖 Telegram Bot Setup</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:1rem;">
+          <p>1️⃣ Open Telegram → Search <strong>@BotFather</strong></p>
+          <p>2️⃣ Send <code>/newbot</code></p>
+          <p>3️⃣ Name: <strong>VehicleInfo Blog</strong></p>
+          <p>4️⃣ Copy the <strong>Bot Token</strong> (looks like: 123456:ABC-DEF...)</p>
+          <p>5️⃣ Start your bot → Send any message to get Chat ID</p>
+          <p>6️⃣ Visit: <code>https://api.telegram.org/bot{TOKEN}/getUpdates</code></p>
+          <p>7️⃣ Copy <strong>chat.id</strong> number from response</p>
+        </div>
+        <div class="form-row">
+          <label>Bot Token</label>
+          <input type="text" id="tgToken" placeholder="123456:ABC-DEF...">
+        </div>
+        <div class="form-row">
+          <label>Chat ID</label>
+          <input type="text" id="tgChatId" placeholder="-100123456 or your personal ID">
+        </div>
+        <div class="form-row">
+          <label>Message Template</label>
+          <textarea id="tgTemplate" style="min-height:100px;">🚗 New Blog Published!
+
+📰 {title}
+
+{excerpt}
+
+🔗 Read on VehicleInfo Blog!</textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveTelegramSettings()">💾 Save Settings</button>
+          <button class="btn btn-outline" onclick="testTelegram()">✈️ Send Test Message</button>
+        </div>
+      </div>
+    </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
 const POSTS_KEY = 'vehicleblog_posts';
- 
-  const CATEGORY_KEY = 'vehicleblog_categories';
-
 let generatedPost = null;
 
 // ─── UTILS ────────────────────────────────────
@@ -378,6 +417,7 @@ function showPage(id, btn) {
   if (id==='dashboard') loadDashboard();
   if (id==='posts') loadPostsTable();
   if (id==='whatsapp') loadWAPage();
+  if (id==='telegram') { document.getElementById('tgToken').value = localStorage.getItem('vb_tgtoken')||''; document.getElementById('tgChatId').value = localStorage.getItem('vb_tgchatid')||''; document.getElementById('tgTemplate').value = localStorage.getItem('vb_tgtemplate')||document.getElementById('tgTemplate').value; }
   if (id==='settings') loadSettings();
 }
 
@@ -477,6 +517,10 @@ function publishPost() {
   if (document.getElementById('autoWA').classList.contains('on')) {
     setTimeout(sendWhatsAppAlert, 500);
   }
+  // Auto Telegram
+  const tgToken = localStorage.getItem('vb_tgtoken');
+  const tgChatId = localStorage.getItem('vb_tgchatid');
+  if (tgToken && tgChatId && generatedPost) { setTimeout(() => sendTelegramNotification(generatedPost), 1000); }
 }
 
 function sendWhatsAppAlert() {
@@ -585,6 +629,48 @@ function clearAllPosts() {
     showToast('All posts cleared.');
     loadPostsTable();
   }
+}
+
+
+// ─── TELEGRAM ───────────────────────────
+function saveTelegramSettings() {
+  localStorage.setItem('vb_tgtoken', document.getElementById('tgToken').value.trim());
+  localStorage.setItem('vb_tgchatid', document.getElementById('tgChatId').value.trim());
+  localStorage.setItem('vb_tgtemplate', document.getElementById('tgTemplate').value);
+  showToast('✅ Telegram settings saved!');
+}
+
+async function sendTelegramNotification(post) {
+  const token = localStorage.getItem('vb_tgtoken');
+  const chatId = localStorage.getItem('vb_tgchatid');
+  if (!token || !chatId) return;
+  const template = localStorage.getItem('vb_tgtemplate') || '🚗 New Blog!\n\n{title}\n\n{excerpt}';
+  const text = template.replace('{title}', post.title).replace('{excerpt}', post.excerpt);
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'HTML' })
+    });
+    showToast('✈️ Telegram message sent!');
+    bumpWAStat();
+  } catch(e) { showToast('Telegram error: ' + e.message, 'error'); }
+}
+
+async function testTelegram() {
+  const token = document.getElementById('tgToken').value.trim();
+  const chatId = document.getElementById('tgChatId').value.trim();
+  if (!token || !chatId) { showToast('Enter Token and Chat ID first!', 'error'); return; }
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ chat_id: chatId, text: '🚗 VehicleInfo Blog\n\nTest message! ✅ Telegram alerts are working!' })
+    });
+    const d = await res.json();
+    if (d.ok) showToast('✅ Test message sent!');
+    else showToast('Error: ' + d.description, 'error');
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
 // ─── INIT ───────────────────────────────────
