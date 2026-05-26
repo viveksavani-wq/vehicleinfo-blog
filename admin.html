@@ -3,579 +3,589 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VehicleInfo Blog Admin</title>
+<title>Admin Panel - VehicleInfo Blog</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+:root {
+  --blue:#1a56db; --blue-dark:#1e429f; --blue-light:#e8f0fe;
+  --green:#059669; --green-light:#d1fae5;
+  --orange:#d97706; --orange-light:#fef3c7;
+  --red:#dc2626; --red-light:#fee2e2;
+  --text:#111827; --muted:#6b7280; --border:#e5e7eb;
+  --bg:#f3f4f6; --white:#fff; --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
 
-  :root {
-    --bg: #0d0d0d;
-    --card: #161616;
-    --border: #252525;
-    --accent: #ff6b2b;
-    --accent2: #ffb347;
-    --text: #f0f0f0;
-    --muted: #666;
-    --success: #2ecc71;
-    --error: #e74c3c;
-  }
+/* TOP BAR */
+.topbar{background:var(--blue-dark);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-logo{color:white;font-family:'Sora',sans-serif;font-weight:700;font-size:17px;display:flex;align-items:center;gap:8px;}
+.topbar-links{display:flex;gap:8px;}
+.topbar-link{color:rgba(255,255,255,0.7);font-size:13px;padding:6px 12px;border-radius:6px;cursor:pointer;border:1px solid transparent;}
+.topbar-link:hover,.topbar-link.active{background:rgba(255,255,255,0.15);color:white;border-color:rgba(255,255,255,0.2);}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+.layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 56px);}
+@media(max-width:768px){.layout{grid-template-columns:1fr;}}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-  }
+/* SIDEBAR */
+.sidebar{background:var(--white);border-right:1px solid var(--border);padding:1.5rem 1rem;}
+.sidebar-section{margin-bottom:1.5rem;}
+.sidebar-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;padding:0 0.5rem;margin-bottom:0.5rem;}
+.side-btn{width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;font-size:14px;font-weight:500;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;color:var(--text);transition:all 0.15s;}
+.side-btn:hover{background:var(--bg);}
+.side-btn.active{background:var(--blue-light);color:var(--blue);}
 
-  header {
-    border-bottom: 1px solid var(--border);
-    padding: 18px 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--card);
-  }
+/* MAIN */
+.main{padding:2rem;overflow-y:auto;}
+.page{display:none;}
+.page.active{display:block;}
+.page-title{font-family:'Sora',sans-serif;font-size:22px;font-weight:700;margin-bottom:0.5rem;}
+.page-sub{font-size:14px;color:var(--muted);margin-bottom:2rem;}
 
-  header h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.3rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-  }
+/* CARDS */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1.5rem;}
+.card-title{font-family:'Sora',sans-serif;font-size:15px;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem;}
+.stat{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;}
+.stat-label{font-size:12px;color:var(--muted);margin-bottom:4px;}
+.stat-val{font-size:24px;font-weight:700;font-family:'Sora',sans-serif;color:var(--blue);}
 
-  header h1 span { color: var(--accent); }
+/* FORM ELEMENTS */
+label{display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text);}
+input,textarea,select{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--white);color:var(--text);outline:none;transition:border 0.2s;}
+input:focus,textarea:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,0.1);}
+textarea{resize:vertical;min-height:100px;}
+.form-row{margin-bottom:1rem;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
 
-  nav {
-    display: flex;
-    gap: 6px;
-  }
+/* BUTTONS */
+.btn{padding:10px 20px;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;border:none;display:inline-flex;align-items:center;gap:8px;transition:all 0.2s;font-family:'DM Sans',sans-serif;}
+.btn-primary{background:var(--blue);color:white;}
+.btn-primary:hover{background:var(--blue-dark);}
+.btn-success{background:var(--green);color:white;}
+.btn-success:hover{background:#047857;}
+.btn-danger{background:var(--red);color:white;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text);}
+.btn-outline:hover{background:var(--bg);}
+.btn-wa{background:#25D366;color:white;}
+.btn-wa:hover{background:#128C7E;}
+.btn:disabled{opacity:0.6;cursor:not-allowed;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem;}
 
-  nav button {
-    background: none;
-    border: 1px solid transparent;
-    color: var(--muted);
-    padding: 7px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-  }
+/* POSTS TABLE */
+.posts-table{width:100%;border-collapse:collapse;}
+.posts-table th{text-align:left;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;padding:8px 12px;border-bottom:2px solid var(--border);}
+.posts-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:14px;vertical-align:middle;}
+.posts-table tr:hover td{background:var(--bg);}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;}
+.badge-blue{background:var(--blue-light);color:var(--blue);}
+.badge-green{background:var(--green-light);color:var(--green);}
 
-  nav button.active, nav button:hover {
-    border-color: var(--border);
-    color: var(--text);
-    background: var(--bg);
-  }
+/* AI GENERATE */
+.topic-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem;}
+.topic-chip{padding:6px 14px;border-radius:999px;border:1px solid var(--border);font-size:13px;cursor:pointer;background:var(--white);transition:all 0.2s;}
+.topic-chip:hover{background:var(--blue-light);border-color:var(--blue);color:var(--blue);}
 
-  nav button.active {
-    color: var(--accent);
-    border-color: var(--accent);
-  }
+/* PREVIEW */
+.preview-box{background:var(--bg);border-radius:8px;padding:1.25rem;font-size:14px;line-height:1.8;color:var(--text);min-height:200px;max-height:400px;overflow-y:auto;}
+.preview-box h3{font-size:15px;font-weight:600;margin:0.75rem 0 0.4rem;}
+.preview-box p{margin-bottom:0.5rem;}
+.preview-box ul{padding-left:1.2rem;margin-bottom:0.5rem;}
 
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 32px 24px;
-  }
+/* SPINNER */
+.spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;}
+.spinner-blue{border-color:var(--blue-light);border-top-color:var(--blue);}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-  .tab { display: none; }
-  .tab.active { display: block; }
+/* TOAST */
+.toast{position:fixed;bottom:2rem;right:2rem;padding:12px 20px;border-radius:10px;font-size:14px;z-index:999;transform:translateY(100px);opacity:0;transition:all 0.3s;max-width:320px;}
+.toast.success{background:#111827;color:white;}
+.toast.error{background:var(--red);color:white;}
+.toast.show{transform:translateY(0);opacity:1;}
 
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 20px;
-  }
-
-  .card h2 {
-    font-family: 'Syne', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    margin-bottom: 18px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  label {
-    display: block;
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  input, select, textarea {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9rem;
-    margin-bottom: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  input:focus, select:focus, textarea:focus {
-    border-color: var(--accent);
-  }
-
-  textarea { resize: vertical; min-height: 120px; }
-
-  .btn {
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    padding: 11px 22px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .btn:hover { opacity: 0.85; transform: translateY(-1px); }
-  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-  .btn-secondary {
-    background: var(--border);
-    color: var(--text);
-  }
-
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-
-  .tag {
-    display: inline-block;
-    background: rgba(255,107,43,0.1);
-    color: var(--accent);
-    border: 1px solid rgba(255,107,43,0.3);
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    margin-right: 6px;
-    margin-bottom: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .tag:hover { background: rgba(255,107,43,0.2); }
-
-  #blog-output {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    min-height: 200px;
-    white-space: pre-wrap;
-    font-size: 0.88rem;
-    line-height: 1.7;
-    display: none;
-  }
-
-  .status-bar {
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    margin-top: 12px;
-    display: none;
-  }
-
-  .status-bar.success { background: rgba(46,204,113,0.1); color: var(--success); border: 1px solid rgba(46,204,113,0.3); }
-  .status-bar.error { background: rgba(231,76,60,0.1); color: var(--error); border: 1px solid rgba(231,76,60,0.3); }
-  .status-bar.info { background: rgba(255,107,43,0.1); color: var(--accent); border: 1px solid rgba(255,107,43,0.3); }
-
-  .loader {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .tg-badge {
-    background: rgba(0,136,204,0.15);
-    border: 1px solid rgba(0,136,204,0.3);
-    color: #29b6f6;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    font-weight: 500;
-  }
-
-  .divider {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 20px 0;
-  }
-
-  .row { display: flex; gap: 12px; align-items: flex-start; }
-  .row .btn { margin-top: 0; flex-shrink: 0; }
-
-  .posts-list { display: flex; flex-direction: column; gap: 10px; }
-
-  .post-item {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .post-item h4 { font-size: 0.9rem; font-weight: 500; margin-bottom: 3px; }
-  .post-item p { font-size: 0.78rem; color: var(--muted); }
-
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); display: inline-block; margin-right: 6px; }
+/* SETTINGS */
+.settings-item{display:flex;align-items:center;justify-content:space-between;padding:1rem 0;border-bottom:1px solid var(--border);}
+.settings-item:last-child{border-bottom:none;}
+.settings-info{flex:1;}
+.settings-label{font-size:14px;font-weight:500;}
+.settings-desc{font-size:12px;color:var(--muted);margin-top:2px;}
+.toggle{width:44px;height:24px;background:var(--border);border-radius:999px;cursor:pointer;position:relative;transition:background 0.2s;border:none;flex-shrink:0;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:white;top:3px;left:3px;transition:transform 0.2s;}
+.toggle.on::after{transform:translateX(20px);}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;}
+.dot-green{background:var(--green);}
+.dot-red{background:var(--red);}
+.dot-orange{background:var(--orange);}
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Vehicle<span>Info</span> Admin</h1>
-  <nav>
-    <button class="active" onclick="showTab('generate')">✍️ Generate</button>
-    <button onclick="showTab('posts')">📄 Posts</button>
-    <button onclick="showTab('settings')">⚙️ Settings</button>
-  </nav>
-</header>
-
-<div class="container">
-
-  <!-- GENERATE TAB -->
-  <div id="tab-generate" class="tab active">
-    <div class="card">
-      <h2>🤖 AI Blog Generator</h2>
-
-      <label>Category</label>
-      <select id="category">
-        <option value="RC">RC & Registration</option>
-        <option value="Challan">Traffic Challan</option>
-        <option value="Insurance">Vehicle Insurance</option>
-        <option value="FASTag">FASTag</option>
-        <option value="Car Sale">Car Sale & Transfer</option>
-        <option value="Owner">Owner Details</option>
-      </select>
-
-      <label>Quick Topics</label>
-      <div id="quick-topics">
-        <span class="tag" onclick="setTopic(this)">How to check RC status online</span>
-        <span class="tag" onclick="setTopic(this)">How to pay traffic challan online</span>
-        <span class="tag" onclick="setTopic(this)">Best car insurance in India 2025</span>
-        <span class="tag" onclick="setTopic(this)">FASTag not working — fixes</span>
-        <span class="tag" onclick="setTopic(this)">How to transfer car ownership</span>
-        <span class="tag" onclick="setTopic(this)">How to find vehicle owner by number plate</span>
-        <span class="tag" onclick="setTopic(this)">How to renew vehicle insurance online</span>
-        <span class="tag" onclick="setTopic(this)">How to recharge FASTag online</span>
-      </div>
-
-      <label style="margin-top:14px">Blog Topic</label>
-      <input type="text" id="topic" placeholder="Enter topic or click above..." />
-
-      <button class="btn" id="gen-btn" onclick="generateBlog()">
-        ✨ Generate Blog with AI
-      </button>
-    </div>
-
-    <div class="card" id="output-card" style="display:none">
-      <h2>📝 Generated Blog</h2>
-      <div id="blog-output" style="display:block"></div>
-      <hr class="divider">
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:4px">
-        <button class="btn" onclick="publishBlog()">🚀 Publish + Telegram</button>
-        <button class="btn btn-secondary" onclick="copyBlog()">📋 Copy</button>
-      </div>
-      <div id="publish-status" class="status-bar"></div>
-    </div>
-
-    <div id="gen-status" class="status-bar"></div>
+<div class="topbar">
+  <div class="topbar-logo">🚗 VehicleInfo Admin</div>
+  <div class="topbar-links">
+    <span class="topbar-link" onclick="window.open('index.html','_blank')">🌐 View Blog</span>
   </div>
+</div>
 
-  <!-- POSTS TAB -->
-  <div id="tab-posts" class="tab">
-    <div class="card">
-      <h2>📄 Published Posts</h2>
-      <div id="posts-list" class="posts-list">
-        <p style="color:var(--muted); font-size:0.85rem">No posts yet. Generate and publish your first blog!</p>
-      </div>
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <button class="side-btn active" onclick="showPage('dashboard',this)">📊 Dashboard</button>
+      <button class="side-btn" onclick="showPage('generate',this)">🤖 AI Generate Blog</button>
+      <button class="side-btn" onclick="showPage('posts',this)">📝 All Posts</button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Settings</div>
+      <button class="side-btn" onclick="showPage('settings',this)">⚙️ Settings</button>
+      <button class="side-btn" onclick="showPage('whatsapp',this)">📱 WhatsApp Setup</button>
     </div>
   </div>
 
-  <!-- SETTINGS TAB -->
-  <div id="tab-settings" class="tab">
+  <!-- MAIN CONTENT -->
+  <div class="main">
 
-    <div class="card">
-      <h2>🤖 Groq API Key</h2>
-      <label>API Key (gsk_...)</label>
-      <input type="password" id="groq-key" placeholder="gsk_..." />
-      <button class="btn" onclick="saveGroq()">💾 Save Key</button>
-      <div id="groq-status" class="status-bar"></div>
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-title">📊 Dashboard</div>
+      <div class="page-sub">Your blog overview at a glance</div>
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-label">Total Posts</div><div class="stat-val" id="statTotal">0</div></div>
+        <div class="stat"><div class="stat-label">This Week</div><div class="stat-val" id="statWeek">0</div></div>
+        <div class="stat"><div class="stat-label">WhatsApp Sent</div><div class="stat-val" id="statWA">0</div></div>
+        <div class="stat"><div class="stat-label">AI Generated</div><div class="stat-val" id="statAI">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚡ Quick Actions</div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="showPage('generate', document.querySelector('[onclick*=generate]'))">🤖 Generate New Blog</button>
+          <button class="btn btn-wa" onclick="showPage('whatsapp', document.querySelector('[onclick*=whatsapp]'))">📱 WhatsApp Alert</button>
+          <button class="btn btn-outline" onclick="window.open('index.html','_blank')">🌐 View Website</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📝 Recent Posts</div>
+        <div id="recentPosts"><p style="color:var(--muted);font-size:14px;">No posts yet. Generate your first blog!</p></div>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>📱 Telegram Notification <span class="tg-badge">✈️ Telegram</span></h2>
-      <p style="font-size:0.82rem; color:var(--muted); margin-bottom:16px">
-        Blog publish થાય ત્યારે Telegram message automatically આવશે!
-      </p>
+    <!-- AI GENERATE -->
+    <div class="page" id="page-generate">
+      <div class="page-title">🤖 AI Blog Generator</div>
+      <div class="page-sub">Enter a topic — AI writes the full article automatically</div>
 
-      <div class="grid2">
-        <div>
-          <label>Bot Token</label>
-          <input type="password" id="tg-token" placeholder="123456:ABC-DEF..." />
-        </div>
-        <div>
-          <label>Chat ID</label>
-          <input type="text" id="tg-chatid" placeholder="123456789" />
+      <div class="card">
+        <div class="card-title">📌 Trending Vehicle Topics</div>
+        <div class="topic-chips">
+          <span class="topic-chip" onclick="setTopic(this)">How to check RC status online</span>
+          <span class="topic-chip" onclick="setTopic(this)">How to pay traffic challan online</span>
+          <span class="topic-chip" onclick="setTopic(this)">Best car insurance in India 2025</span>
+          <span class="topic-chip" onclick="setTopic(this)">FASTag not working - how to fix</span>
+          <span class="topic-chip" onclick="setTopic(this)">How to transfer car ownership</span>
+          <span class="topic-chip" onclick="setTopic(this)">Duplicate RC apply online</span>
+          <span class="topic-chip" onclick="setTopic(this)">Vehicle insurance renewal tips</span>
+          <span class="topic-chip" onclick="setTopic(this)">How to check vehicle owner details</span>
+          <span class="topic-chip" onclick="setTopic(this)">NOC for vehicle - complete guide</span>
+          <span class="topic-chip" onclick="setTopic(this)">Car loan foreclosure process</span>
         </div>
       </div>
 
-      <div style="display:flex; gap:10px; flex-wrap:wrap">
-        <button class="btn" onclick="saveTelegram()">💾 Save Telegram</button>
-        <button class="btn btn-secondary" onclick="testTelegram()">🧪 Test Message</button>
+      <div class="card">
+        <div class="card-title">✍️ Blog Details</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Topic / Title</label>
+            <input type="text" id="blogTopic" placeholder="e.g. How to check RC status online...">
+          </div>
+          <div class="form-row">
+            <label>Category</label>
+            <select id="blogCat">
+              <option>RC & Registration</option>
+              <option>Challan</option>
+              <option>Insurance</option>
+              <option>FASTag</option>
+              <option>Car Sale</option>
+              <option>Owner</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="genBtn" onclick="generateBlog()">
+            🤖 Generate Blog with AI
+          </button>
+          <button class="btn btn-outline" onclick="clearGenerate()">🗑 Clear</button>
+        </div>
       </div>
-      <div id="tg-status" class="status-bar"></div>
+
+      <div class="card" id="previewCard" style="display:none;">
+        <div class="card-title">👁 Preview</div>
+        <div style="margin-bottom:1rem;">
+          <label>Title</label>
+          <input type="text" id="previewTitle">
+        </div>
+        <div style="margin-bottom:1rem;">
+          <label>Excerpt</label>
+          <textarea id="previewExcerpt" style="min-height:60px;"></textarea>
+        </div>
+        <div style="margin-bottom:1rem;">
+          <label>Full Article</label>
+          <div class="preview-box" id="previewBody"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-success" onclick="publishPost()">✅ Publish to Blog</button>
+          <button class="btn btn-wa" onclick="sendWhatsAppAlert()">📱 Send WhatsApp Alert</button>
+          <button class="btn btn-success" onclick="publishAndNotify()">🚀 Publish + WhatsApp</button>
+          <button class="btn btn-outline" onclick="regenerate()">🔄 Regenerate</button>
+        </div>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>🌐 Blog Website URL</h2>
-      <label>Your GitHub Pages URL</label>
-      <input type="text" id="site-url" placeholder="https://username.github.io/vehicleinfo-blog" />
-      <button class="btn" onclick="saveSiteUrl()">💾 Save URL</button>
+    <!-- ALL POSTS -->
+    <div class="page" id="page-posts">
+      <div class="page-title">📝 All Posts</div>
+      <div class="page-sub">Manage your published articles</div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="posts-table">
+          <thead><tr><th>Title</th><th>Category</th><th>Date</th><th>Action</th></tr></thead>
+          <tbody id="postsTableBody"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem;">No posts yet</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- WHATSAPP SETUP -->
+    <div class="page" id="page-whatsapp">
+      <div class="page-title">📱 WhatsApp Setup</div>
+      <div class="page-sub">Get notified on WhatsApp when a new blog is published</div>
+
+      <div class="card">
+        <div class="card-title">📞 Your WhatsApp Number</div>
+        <div class="form-row">
+          <label>Phone Number (with country code)</label>
+          <input type="tel" id="waNumber" placeholder="e.g. 919876543210" value="">
+        </div>
+        <div class="form-row">
+          <label>Message Template</label>
+          <textarea id="waTemplate" style="min-height:100px;">🚗 *New Blog Published!*
+
+📰 *{title}*
+
+{excerpt}
+
+🔗 Read it on VehicleInfo Blog!
+
+_Powered by VehicleInfo AI_</textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-success" onclick="saveWASettings()">💾 Save Settings</button>
+          <button class="btn btn-wa" onclick="testWhatsApp()">📱 Send Test Message</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">ℹ️ How WhatsApp Alert Works</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.8;">
+          <p>1️⃣ You publish a blog article</p>
+          <p>2️⃣ Click <strong>"Send WhatsApp Alert"</strong> button</p>
+          <p>3️⃣ WhatsApp opens with pre-written message</p>
+          <p>4️⃣ Click Send — done! ✅</p>
+          <br>
+          <p><strong>💡 Tip:</strong> For fully automatic WhatsApp, use <a href="https://callmebot.com" target="_blank" style="color:var(--blue);">CallMeBot API</a> (free service). Enter your API key below for auto-send.</p>
+        </div>
+        <div class="form-row" style="margin-top:1rem;">
+          <label>CallMeBot API Key (optional - for auto-send)</label>
+          <input type="text" id="callmebotKey" placeholder="Your CallMeBot API key...">
+        </div>
+        <button class="btn btn-outline" onclick="saveCallmebot()">💾 Save API Key</button>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="page-title">⚙️ Settings</div>
+      <div class="page-sub">Configure your blog automation</div>
+
+      <div class="card">
+        <div class="card-title">🔑 Anthropic API</div>
+        <div class="form-row">
+          <label>Groq API Key (Free!)</label>
+          <input type="password" id="apiKeyInput" placeholder="gsk_...">
+        </div>
+        <button class="btn btn-primary" onclick="saveApiKey()">💾 Save API Key</button>
+        <p style="font-size:12px;color:var(--muted);margin-top:8px;">Get your FREE key at <a href="https://console.groq.com" target="_blank" style="color:var(--blue);">console.groq.com</a></p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⚙️ Blog Settings</div>
+        <div class="settings-item">
+          <div class="settings-info">
+            <div class="settings-label">Auto WhatsApp on publish</div>
+            <div class="settings-desc">Send WhatsApp alert automatically when blog is published</div>
+          </div>
+          <button class="toggle" id="autoWA" onclick="this.classList.toggle('on')"></button>
+        </div>
+        <div class="settings-item">
+          <div class="settings-info">
+            <div class="settings-label">Show trending topics</div>
+            <div class="settings-desc">Show trending vehicle topics in sidebar</div>
+          </div>
+          <button class="toggle on" id="showTrending" onclick="this.classList.toggle('on')"></button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🗑 Data Management</div>
+        <div class="btn-row">
+          <button class="btn btn-outline" onclick="exportPosts()">📤 Export All Posts</button>
+          <button class="btn btn-danger" onclick="clearAllPosts()">🗑 Clear All Posts</button>
+        </div>
+      </div>
     </div>
 
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
-// ── Storage helpers ──
-const S = {
-  get: k => localStorage.getItem(k) || '',
-  set: (k,v) => localStorage.setItem(k, v)
-};
+const POSTS_KEY = 'vehicleblog_posts';
+let generatedPost = null;
 
-// ── Init ──
-window.onload = () => {
-  document.getElementById('groq-key').value = S.get('groq_key');
-  document.getElementById('tg-token').value = S.get('tg_token');
-  document.getElementById('tg-chatid').value = S.get('tg_chatid');
-  document.getElementById('site-url').value = S.get('site_url');
-  renderPosts();
-};
-
-// ── Tab switching ──
-function showTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
-  if (name === 'posts') renderPosts();
+// ─── UTILS ────────────────────────────────────
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ── Quick topic ──
-function setTopic(el) {
-  document.getElementById('topic').value = el.textContent;
+function getPosts() { try { return JSON.parse(localStorage.getItem(POSTS_KEY)||'[]'); } catch { return []; } }
+function savePosts(p) { localStorage.setItem(POSTS_KEY, JSON.stringify(p)); }
+function getApiKey() { return localStorage.getItem('vb_apikey') || ''; }
+function getWANumber() { return localStorage.getItem('vb_wanumber') || ''; }
+function getWATemplate() { return localStorage.getItem('vb_watemplate') || '🚗 *New Blog Published!*\n\n📰 *{title}*\n\n{excerpt}\n\n🔗 Read it on VehicleInfo Blog!'; }
+
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.side-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id==='dashboard') loadDashboard();
+  if (id==='posts') loadPostsTable();
+  if (id==='whatsapp') loadWAPage();
+  if (id==='settings') loadSettings();
 }
 
-// ── Status helper ──
-function showStatus(id, msg, type) {
-  const el = document.getElementById(id);
-  el.textContent = msg;
-  el.className = 'status-bar ' + type;
-  el.style.display = 'block';
-  if (type === 'success') setTimeout(() => el.style.display = 'none', 4000);
+// ─── DASHBOARD ──────────────────────────────
+function loadDashboard() {
+  const posts = getPosts();
+  const now = new Date();
+  const weekAgo = new Date(now - 7*24*60*60*1000);
+  const weekPosts = posts.filter(p => new Date(p.dateRaw) > weekAgo);
+
+  document.getElementById('statTotal').textContent = posts.length;
+  document.getElementById('statWeek').textContent = weekPosts.length;
+  document.getElementById('statWA').textContent = localStorage.getItem('vb_wasent')||0;
+  document.getElementById('statAI').textContent = localStorage.getItem('vb_aigenerated')||0;
+
+  const recent = posts.slice(-3).reverse();
+  document.getElementById('recentPosts').innerHTML = recent.length
+    ? recent.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <span class="badge badge-blue">${p.category}</span>
+        <span style="font-size:14px;flex:1;">${p.title}</span>
+        <span style="font-size:12px;color:var(--muted);">${p.date}</span>
+      </div>`).join('')
+    : '<p style="color:var(--muted);font-size:14px;">No posts yet.</p>';
 }
 
-// ── Generate Blog ──
-let currentBlog = '';
+// ─── AI GENERATE ────────────────────────────
+function setTopic(el) { document.getElementById('blogTopic').value = el.textContent; }
+
+function clearGenerate() {
+  document.getElementById('blogTopic').value = '';
+  document.getElementById('previewCard').style.display = 'none';
+  generatedPost = null;
+}
 
 async function generateBlog() {
-  const topic = document.getElementById('topic').value.trim();
-  const category = document.getElementById('category').value;
-  const key = S.get('groq_key');
+  const topic = document.getElementById('blogTopic').value.trim();
+  const cat = document.getElementById('blogCat').value;
+  if (!topic) { showToast('Please enter a topic!','error'); return; }
 
-  if (!topic) { showStatus('gen-status', '⚠️ Topic enter કરો!', 'error'); return; }
-  if (!key) { showStatus('gen-status', '⚠️ Settings માં Groq API key save કરો!', 'error'); return; }
+  const apiKey = getApiKey();
+  if (!apiKey) { showToast('Please add your Anthropic API key in Settings!','error'); showPage('settings'); return; }
 
-  const btn = document.getElementById('gen-btn');
+  const btn = document.getElementById('genBtn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="loader"></span> Generating...';
-  showStatus('gen-status', '🤖 AI blog લખી રહ્યો છે...', 'info');
-  document.getElementById('output-card').style.display = 'none';
+  btn.innerHTML = '<span class="spinner"></span> AI is writing...';
+  document.getElementById('previewCard').style.display = 'none';
 
-  const prompt = `Write a detailed, SEO-optimized blog post in English about: "${topic}"
-Category: ${category} (Vehicle/Automotive topic for Indian audience)
+  const prompt = `You are an expert vehicle blogger in India. Write a detailed blog article about: "${topic}" in the category: "${cat}".
 
-Structure:
-- Catchy title (H1)
-- Introduction (2-3 sentences)
-- 4-5 main sections with H2 headings
-- Step-by-step where applicable
-- Important tips or warnings
-- Conclusion with call-to-action
+Make it practical, helpful, and SEO-friendly for Indian vehicle owners.
 
-Include practical India-specific information (RTO, government portals, etc.)
-Length: 600-800 words. Write in a helpful, clear tone.`;
+Respond ONLY with valid JSON (no markdown, no backticks, no extra text):
+{"title":"engaging SEO title","excerpt":"2 sentence compelling summary for preview","body":"full HTML article using only h3 p ul li tags, minimum 500 words, include practical steps and tips"}`;
 
   try {
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + key
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1200,
-        temperature: 0.7
-      })
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: 'llama-3.3-70b-versatile', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
     });
-
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || 'API Error');
+    if (data.error) throw new Error(data.error.message);
+    const text = data.choices?.[0]?.message?.content || '';
+    const article = JSON.parse(text.replace(/```json|```/g,'').trim());
 
-    currentBlog = data.choices[0].message.content;
-    document.getElementById('blog-output').textContent = currentBlog;
-    document.getElementById('output-card').style.display = 'block';
-    showStatus('gen-status', '✅ Blog ready! Publish કરો.', 'success');
+    generatedPost = { ...article, category: cat, date: new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}), dateRaw: new Date().toISOString(), readTime: Math.ceil(article.body.replace(/<[^>]+>/g,'').split(' ').length / 200) };
 
+    document.getElementById('previewTitle').value = article.title;
+    document.getElementById('previewExcerpt').value = article.excerpt;
+    document.getElementById('previewBody').innerHTML = article.body;
+    document.getElementById('previewCard').style.display = 'block';
+    document.getElementById('previewCard').scrollIntoView({ behavior:'smooth' });
+
+    const count = parseInt(localStorage.getItem('vb_aigenerated')||0) + 1;
+    localStorage.setItem('vb_aigenerated', count);
+    showToast('✅ Blog generated successfully!');
   } catch(e) {
-    showStatus('gen-status', '❌ Error: ' + e.message, 'error');
+    showToast('Error: ' + e.message, 'error');
   }
 
   btn.disabled = false;
-  btn.innerHTML = '✨ Generate Blog with AI';
+  btn.innerHTML = '🤖 Generate Blog with AI';
 }
 
-// ── Copy blog ──
-function copyBlog() {
-  navigator.clipboard.writeText(currentBlog);
-  showStatus('publish-status', '📋 Copied!', 'success');
+function regenerate() { generateBlog(); }
+
+function publishPost() {
+  if (!generatedPost) return;
+  generatedPost.title = document.getElementById('previewTitle').value;
+  generatedPost.excerpt = document.getElementById('previewExcerpt').value;
+
+  const posts = getPosts();
+  posts.push(generatedPost);
+  savePosts(posts);
+  showToast('✅ Published to blog!');
+
+  if (document.getElementById('autoWA').classList.contains('on')) {
+    setTimeout(sendWhatsAppAlert, 500);
+  }
 }
 
-// ── Publish + Telegram ──
-async function publishBlog() {
-  if (!currentBlog) return;
+function sendWhatsAppAlert() {
+  const post = generatedPost;
+  if (!post) { showToast('No post to share!','error'); return; }
+  const number = getWANumber();
+  if (!number) { showToast('Set your WhatsApp number in settings!','error'); showPage('whatsapp'); return; }
 
-  const topic = document.getElementById('topic').value;
-  const category = document.getElementById('category').value;
-  const siteUrl = S.get('site_url') || 'https://your-site.github.io/vehicleinfo-blog';
-
-  // Save post locally
-  const posts = JSON.parse(S.get('posts') || '[]');
-  const post = {
-    id: Date.now(),
-    title: topic,
-    category,
-    content: currentBlog,
-    date: new Date().toLocaleDateString('en-IN'),
-    time: new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'})
-  };
-  posts.unshift(post);
-  S.set('posts', JSON.stringify(posts));
-
-  showStatus('publish-status', '📤 Publishing + Sending Telegram...', 'info');
-
-  // Send Telegram
-  const tgResult = await sendTelegram(
-    `🚗 *New Blog Published!*\n\n📌 *${topic}*\n🏷️ Category: ${category}\n📅 ${post.date} ${post.time}\n\n🌐 Visit: ${siteUrl}`
-  );
-
-  if (tgResult.ok) {
-    showStatus('publish-status', '✅ Published! Telegram message sent! 📱', 'success');
+  const callmebotKey = localStorage.getItem('vb_callmebotkey');
+  if (callmebotKey) {
+    const msg = encodeURIComponent(getWATemplate().replace('{title}', post.title).replace('{excerpt}', post.excerpt));
+    fetch(`https://api.callmebot.com/whatsapp.php?phone=${number}&text=${msg}&apikey=${callmebotKey}`)
+      .then(() => { showToast('📱 WhatsApp sent automatically!'); bumpWAStat(); })
+      .catch(() => openWhatsApp(post, number));
   } else {
-    showStatus('publish-status', '✅ Post saved! ⚠️ Telegram: ' + tgResult.error, 'error');
-  }
-
-  renderPosts();
-}
-
-// ── Send Telegram ──
-async function sendTelegram(text) {
-  const token = S.get('tg_token');
-  const chatId = S.get('tg_chatid');
-
-  if (!token || !chatId) return { ok: false, error: 'Telegram not configured in Settings' };
-
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' })
-    });
-    const data = await res.json();
-    return data.ok ? { ok: true } : { ok: false, error: data.description };
-  } catch(e) {
-    return { ok: false, error: e.message };
+    openWhatsApp(post, number);
   }
 }
 
-// ── Test Telegram ──
-async function testTelegram() {
-  showStatus('tg-status', '📤 Sending test message...', 'info');
-  const r = await sendTelegram('🧪 *Test Message*\n\nVehicleInfo Blog Admin panel connected! ✅\n🚗 Ready to receive blog notifications!');
-  if (r.ok) {
-    showStatus('tg-status', '✅ Test message sent! Check your Telegram.', 'success');
-  } else {
-    showStatus('tg-status', '❌ ' + r.error, 'error');
+function openWhatsApp(post, number) {
+  const msg = getWATemplate().replace('{title}', post.title).replace('{excerpt}', post.excerpt);
+  window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`, '_blank');
+  bumpWAStat();
+  showToast('📱 WhatsApp opened!');
+}
+
+function bumpWAStat() {
+  localStorage.setItem('vb_wasent', parseInt(localStorage.getItem('vb_wasent')||0)+1);
+}
+
+function publishAndNotify() {
+  publishPost();
+  setTimeout(sendWhatsAppAlert, 800);
+}
+
+// ─── POSTS TABLE ────────────────────────────
+function loadPostsTable() {
+  const posts = getPosts().slice().reverse();
+  const tbody = document.getElementById('postsTableBody');
+  if (!posts.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem;">No posts yet</td></tr>'; return; }
+  tbody.innerHTML = posts.map((p,i)=>`
+    <tr>
+      <td style="max-width:300px;">${p.title}</td>
+      <td><span class="badge badge-blue">${p.category}</span></td>
+      <td>${p.date}</td>
+      <td><button class="btn btn-outline" style="padding:4px 10px;font-size:12px;" onclick="deletePost(${posts.length-1-i})">🗑 Delete</button></td>
+    </tr>`).join('');
+}
+
+function deletePost(idx) {
+  if (!confirm('Delete this post?')) return;
+  const posts = getPosts();
+  posts.splice(idx, 1);
+  savePosts(posts);
+  loadPostsTable();
+  showToast('Deleted!');
+}
+
+// ─── WHATSAPP PAGE ──────────────────────────
+function loadWAPage() {
+  document.getElementById('waNumber').value = localStorage.getItem('vb_wanumber') || '';
+  document.getElementById('waTemplate').value = getWATemplate();
+  document.getElementById('callmebotKey').value = localStorage.getItem('vb_callmebotkey') || '';
+}
+
+function saveWASettings() {
+  localStorage.setItem('vb_wanumber', document.getElementById('waNumber').value.trim());
+  localStorage.setItem('vb_watemplate', document.getElementById('waTemplate').value);
+  showToast('✅ WhatsApp settings saved!');
+}
+
+function saveCallmebot() {
+  localStorage.setItem('vb_callmebotkey', document.getElementById('callmebotKey').value.trim());
+  showToast('✅ CallMeBot API key saved!');
+}
+
+function testWhatsApp() {
+  const number = document.getElementById('waNumber').value.trim();
+  if (!number) { showToast('Enter your number first!','error'); return; }
+  const msg = '🚗 *VehicleInfo Blog*\n\nThis is a test message from your blog admin panel!\n\n✅ WhatsApp alerts are working correctly.';
+  window.open(`https://wa.me/${number}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ─── SETTINGS ───────────────────────────────
+function loadSettings() {
+  document.getElementById('apiKeyInput').value = getApiKey() ? '••••••••••••••••' : '';
+  document.getElementById('callmebotKey') && (document.getElementById('callmebotKey').value = localStorage.getItem('vb_callmebotkey') || '');
+}
+
+function saveApiKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (val && !val.startsWith('•')) { localStorage.setItem('vb_apikey', val); showToast('✅ API key saved!'); }
+}
+
+function exportPosts() {
+  const data = JSON.stringify(getPosts(), null, 2);
+  const a = document.createElement('a');
+  a.href = 'data:application/json,' + encodeURIComponent(data);
+  a.download = 'vehicleblog-posts.json';
+  a.click();
+}
+
+function clearAllPosts() {
+  if (confirm('Delete ALL posts? This cannot be undone!')) {
+    localStorage.removeItem(POSTS_KEY);
+    showToast('All posts cleared.');
+    loadPostsTable();
   }
 }
 
-// ── Save settings ──
-function saveGroq() {
-  const k = document.getElementById('groq-key').value.trim();
-  if (!k) { showStatus('groq-status', '⚠️ Key enter કરો!', 'error'); return; }
-  S.set('groq_key', k);
-  showStatus('groq-status', '✅ Groq API key saved!', 'success');
-}
-
-function saveTelegram() {
-  const token = document.getElementById('tg-token').value.trim();
-  const chatId = document.getElementById('tg-chatid').value.trim();
-  if (!token || !chatId) { showStatus('tg-status', '⚠️ Token અને Chat ID બંને enter કરો!', 'error'); return; }
-  S.set('tg_token', token);
-  S.set('tg_chatid', chatId);
-  showStatus('tg-status', '✅ Telegram settings saved!', 'success');
-}
-
-function saveSiteUrl() {
-  S.set('site_url', document.getElementById('site-url').value.trim());
-  showStatus('tg-status', '✅ URL saved!', 'success');
-}
-
-// ── Render posts ──
-function renderPosts() {
-  const posts = JSON.parse(S.get('posts') || '[]');
-  const list = document.getElementById('posts-list');
-  if (!posts.length) {
-    list.innerHTML = '<p style="color:var(--muted); font-size:0.85rem">No posts yet. Generate and publish your first blog!</p>';
-    return;
-  }
-  list.innerHTML = posts.map(p => `
-    <div class="post-item">
-      <div>
-        <h4><span class="dot"></span>${p.title}</h4>
-        <p>🏷️ ${p.category} &nbsp;·&nbsp; 📅 ${p.date} ${p.time}</p>
-      </div>
-    </div>
-  `).join('');
-}
+// ─── INIT ───────────────────────────────────
+loadDashboard();
 </script>
 </body>
 </html>
