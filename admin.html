@@ -530,8 +530,22 @@ function publishPost() {
 
   const posts = getPosts();
   posts.push(generatedPost);
-  savePosts(posts);
-  showToast('✅ Published to blog!');
+  
+  try {
+    savePosts(posts);
+    showToast('✅ Published to blog!');
+  } catch(e) {
+    // If storage full, save without image
+    generatedPost.image = generatedPost.image && generatedPost.image.startsWith('http') ? generatedPost.image : null;
+    posts[posts.length-1] = generatedPost;
+    try {
+      savePosts(posts);
+      showToast('✅ Published! (Image too large, using URL only)');
+    } catch(e2) {
+      showToast('Storage full! Clear old posts.', 'error');
+      return;
+    }
+  }
 
   if (document.getElementById('autoWA').classList.contains('on')) {
     setTimeout(sendWhatsAppAlert, 500);
@@ -732,17 +746,36 @@ function autoGenerateImage() {
 function handleImageUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
+  
+  // Compress image before saving
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const tempImg = new Image();
+  const objectUrl = URL.createObjectURL(file);
+  
+  tempImg.onload = () => {
+    // Resize to max 800x400
+    const maxW = 800, maxH = 400;
+    let w = tempImg.width, h = tempImg.height;
+    if (w > maxW) { h = h * maxW / w; w = maxW; }
+    if (h > maxH) { w = w * maxH / h; h = maxH; }
+    canvas.width = w;
+    canvas.height = h;
+    ctx.drawImage(tempImg, 0, 0, w, h);
+    
+    // Compress to 60% quality JPEG
+    const compressed = canvas.toDataURL('image/jpeg', 0.6);
+    
     const img = document.getElementById('previewImg');
     const loading = document.getElementById('imgLoading');
-    img.src = e.target.result;
+    img.src = compressed;
     img.style.display = 'block';
     loading.style.display = 'none';
-    if (generatedPost) generatedPost.image = e.target.result;
+    if (generatedPost) generatedPost.image = compressed;
     showToast('📁 Image uploaded!');
+    URL.revokeObjectURL(objectUrl);
   };
-  reader.readAsDataURL(file);
+  tempImg.src = objectUrl;
 }
 
 function clearImage() {
