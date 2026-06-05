@@ -140,6 +140,7 @@ textarea{resize:vertical;min-height:100px;}
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Settings</div>
+      <button class="side-btn" onclick="showPage('categories',this)">🏷️ Categories</button>
       <button class="side-btn" onclick="showPage('settings',this)">⚙️ Settings</button>
       <button class="side-btn" onclick="showPage('whatsapp',this)">📱 WhatsApp Setup</button>
       <button class="side-btn" onclick="showPage('telegram',this)">✈️ Telegram Setup</button>
@@ -233,7 +234,7 @@ textarea{resize:vertical;min-height:100px;}
         </div>
         <div style="margin-bottom:1rem;">
           <label>Blog Image</label>
-          <div id="previewImgBox" style="width:100%;height:220px;border-radius:8px;overflow:hidden;background:var(--bg);display:flex;align-items:center;justify-content:center;margin-bottom:0.75rem;position:relative;">
+          <div id="previewImgBox" style="width:100%;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:var(--bg);display:flex;align-items:center;justify-content:center;margin-bottom:0.75rem;position:relative;">
             <img id="previewImg" src="" style="width:100%;height:100%;object-fit:cover;display:none;" onload="this.style.display='block';document.getElementById('imgLoading').style.display='none';">
             <div id="imgLoading" style="font-size:13px;color:var(--muted);text-align:center;">🖼️<br>No image yet</div>
           </div>
@@ -315,6 +316,35 @@ _Powered by VehicleInfo AI_</textarea>
           <input type="text" id="callmebotKey" placeholder="Your CallMeBot API key...">
         </div>
         <button class="btn btn-outline" onclick="saveCallmebot()">💾 Save API Key</button>
+      </div>
+    </div>
+
+
+    <!-- CATEGORIES PAGE -->
+    <div class="page" id="page-categories">
+      <div class="page-title">🏷️ Category Management</div>
+      <div class="page-sub">Add categories — AI will auto-generate icon and blog posts will appear on website</div>
+
+      <div class="card">
+        <div class="card-title">➕ Add New Category</div>
+        <div class="form-grid">
+          <div class="form-row">
+            <label>Category Name</label>
+            <input type="text" id="newCatName" placeholder="e.g. Electric Vehicles, Bike, Truck...">
+          </div>
+          <div class="form-row">
+            <label>Description (optional)</label>
+            <input type="text" id="newCatDesc" placeholder="Short description...">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addCategory()">🤖 Add + Auto Icon</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📋 All Categories</div>
+        <div id="catList"></div>
       </div>
     </div>
 
@@ -430,10 +460,12 @@ function showPage(id, btn) {
   document.getElementById('page-'+id).classList.add('active');
   if (btn) btn.classList.add('active');
   if (id==='dashboard') loadDashboard();
+updateCatDropdown();
   if (id==='posts') loadPostsTable();
   if (id==='whatsapp') loadWAPage();
   if (id==='telegram') { document.getElementById('tgToken').value = localStorage.getItem('vb_tgtoken')||''; document.getElementById('tgChatId').value = localStorage.getItem('vb_tgchatid')||''; document.getElementById('tgTemplate').value = localStorage.getItem('vb_tgtemplate')||document.getElementById('tgTemplate').value; }
   if (id==='settings') loadSettings();
+  if (id==='categories') { loadCatList(); }
 }
 
 // ─── DASHBOARD ──────────────────────────────
@@ -699,71 +731,80 @@ function testTelegram() {
 
 
 // ─── IMAGE ──────────────────────────────
-async function autoGenerateImage() {
+function autoGenerateImage() {
   if (!generatedPost) { showToast('Generate blog first!', 'error'); return; }
   const img = document.getElementById('previewImg');
   const loading = document.getElementById('imgLoading');
-  loading.innerHTML = '⏳ Searching AI images...';
+  loading.innerHTML = '⏳ Generating image...';
   loading.style.display = 'block';
   img.style.display = 'none';
 
-  // Smart search query based on category + title
-  const catSearch = {
-    'RC & Registration': 'vehicle registration certificate RTO India',
-    'Challan': 'traffic police India road highway',
-    'Insurance': 'car insurance India vehicle protection',
-    'FASTag': 'toll plaza highway India fastag',
-    'Car Sale': 'car showroom India automobile sale',
-    'Owner': 'car owner India vehicle road'
+  // Extract smart keywords from title
+  const stopWords = /\b(how|to|a|an|the|in|on|of|for|your|is|are|was|were|and|or|but|with|by|at|from|complete|guide|step|online|india|indian|best|top|tips|ways|process|easy|simple|quick)\b/gi;
+  const titleKeywords = generatedPost.title
+    .replace(stopWords, ' ')
+    .replace(/[^a-zA-Z0-9 ]/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(w => w.length > 2)
+    .slice(0, 4)
+    .join(',');
+
+  // Category specific keywords
+  const catKeywords = {
+    'RC & Registration': 'car,registration,india',
+    'Challan': 'traffic,police,india,road',
+    'Insurance': 'car,insurance,india',
+    'FASTag': 'toll,highway,india',
+    'Car Sale': 'car,automobile,showroom',
+    'Owner': 'car,vehicle,india'
   };
 
-  const base = catSearch[generatedPost.category] || 'India vehicle automobile road';
-  const titleWords = generatedPost.title
-    .replace(/how to|guide|complete|step|online|india|in|the|a|an|of|for|your/gi, '')
-    .trim().split(' ').slice(0,3).join(' ');
+  const catKey = catKeywords[generatedPost.category] || 'car,vehicle,india';
+  const finalQuery = titleKeywords ? `${titleKeywords},${catKey}` : catKey;
+  const seed = Math.floor(Math.random() * 1000) + 1;
 
-  const query = encodeURIComponent(`${titleWords} ${base}`);
+  // Unsplash - topic specific real photos
+  const url = `https://source.unsplash.com/800x450/?${finalQuery}&sig=${seed}`;
 
-  try {
-    // Lexica.art free API - search AI generated images
-    const res = await fetch(`https://lexica.art/api/v1/search?q=${query}`);
-    const data = await res.json();
-    
-    if (data.images && data.images.length > 0) {
-      // Pick random from top 10 results
-      const pick = data.images[Math.floor(Math.random() * Math.min(10, data.images.length))];
-      const imageUrl = pick.src;
-      
-      img.src = imageUrl;
-      img.onload = () => {
-        img.style.display = 'block';
-        loading.style.display = 'none';
-        generatedPost.image = imageUrl;
-        showToast('🖼️ AI Image found!');
-      };
-      img.onerror = () => useFallbackImage(generatedPost.category);
-    } else {
-      useFallbackImage(generatedPost.category);
-    }
-  } catch(e) {
-    useFallbackImage(generatedPost.category);
-  }
+  img.src = url;
+  img.onload = () => {
+    img.style.display = 'block';
+    loading.style.display = 'none';
+    generatedPost.image = img.src; // get final redirected URL
+    showToast('🖼️ Image ready!');
+  };
+  img.onerror = () => useFallbackImage(generatedPost.category);
 }
 
 function useFallbackImage(category) {
   const img = document.getElementById('previewImg');
   const loading = document.getElementById('imgLoading');
+  const catKeywords = {
+    'RC & Registration': 'car,document',
+    'Challan': 'traffic,road',
+    'Insurance': 'car,insurance',
+    'FASTag': 'highway,toll',
+    'Car Sale': 'car,sale',
+    'Owner': 'car,vehicle'
+  };
+  const keyword = catKeywords[category] || 'car,india';
   const seed = Math.floor(Math.random() * 900) + 100;
-  const url = `https://picsum.photos/seed/${seed}/800/450`;
-  loading.innerHTML = '⏳ Loading image...';
+  const url = `https://source.unsplash.com/800x450/?${keyword}&sig=${seed}`;
+  loading.innerHTML = '⏳ Loading...';
   img.src = url;
   img.onload = () => {
     img.style.display = 'block';
     loading.style.display = 'none';
-    if (generatedPost) generatedPost.image = url;
+    if (generatedPost) generatedPost.image = img.src;
     showToast('🖼️ Image ready!');
   };
-  img.onerror = () => { loading.innerHTML = '❌ Failed. Try again.'; };
+  img.onerror = () => {
+    const fallback = `https://picsum.photos/seed/${seed}/800/450`;
+    img.src = fallback;
+    if (generatedPost) generatedPost.image = fallback;
+    img.onload = () => { img.style.display='block'; loading.style.display='none'; };
+  };
 }
 
 function handleImageUpload(event) {
@@ -809,8 +850,110 @@ function clearImage() {
   if (generatedPost) generatedPost.image = null;
 }
 
+
+// ─── CATEGORIES ─────────────────────────
+const DEFAULT_CATS = [
+  { name: 'RC & Registration', icon: '🪪', desc: 'Vehicle registration and RC related' },
+  { name: 'Challan', icon: '⚠️', desc: 'Traffic fines and challans' },
+  { name: 'Insurance', icon: '🛡️', desc: 'Vehicle insurance tips' },
+  { name: 'FASTag', icon: '💳', desc: 'FASTag setup and recharge' },
+  { name: 'Car Sale', icon: '🔄', desc: 'Buy and sell vehicles' },
+  { name: 'Owner', icon: '👤', desc: 'Vehicle owner information' },
+];
+
+function getCategories() {
+  try { return JSON.parse(localStorage.getItem('vb_categories') || 'null') || DEFAULT_CATS; } 
+  catch { return DEFAULT_CATS; }
+}
+
+function saveCategories(cats) { localStorage.setItem('vb_categories', JSON.stringify(cats)); }
+
+// Auto assign icon based on name
+function autoIcon(name) {
+  const n = name.toLowerCase();
+  if (n.includes('electric') || n.includes('ev')) return '⚡';
+  if (n.includes('bike') || n.includes('motorbike') || n.includes('motorcycle')) return '🏍️';
+  if (n.includes('truck') || n.includes('commercial')) return '🚛';
+  if (n.includes('taxi') || n.includes('cab')) return '🚕';
+  if (n.includes('bus')) return '🚌';
+  if (n.includes('auto') || n.includes('rickshaw')) return '🛺';
+  if (n.includes('license') || n.includes('licence') || n.includes('dl')) return '📋';
+  if (n.includes('pollution') || n.includes('puc')) return '🌿';
+  if (n.includes('loan') || n.includes('finance')) return '💰';
+  if (n.includes('repair') || n.includes('service') || n.includes('maintenance')) return '🔧';
+  if (n.includes('accident') || n.includes('safety')) return '🚨';
+  if (n.includes('parking')) return '🅿️';
+  if (n.includes('fuel') || n.includes('petrol') || n.includes('diesel')) return '⛽';
+  if (n.includes('gps') || n.includes('track')) return '📍';
+  if (n.includes('toll') || n.includes('highway')) return '🛣️';
+  if (n.includes('rc') || n.includes('registr')) return '🪪';
+  if (n.includes('challan') || n.includes('fine') || n.includes('traffic')) return '⚠️';
+  if (n.includes('insur')) return '🛡️';
+  if (n.includes('fastag') || n.includes('tag')) return '💳';
+  if (n.includes('sale') || n.includes('sell') || n.includes('buy')) return '🔄';
+  if (n.includes('owner')) return '👤';
+  return '🚗';
+}
+
+function addCategory() {
+  const name = document.getElementById('newCatName').value.trim();
+  const desc = document.getElementById('newCatDesc').value.trim();
+  if (!name) { showToast('Category name જરૂરી છે!', 'error'); return; }
+  
+  const cats = getCategories();
+  if (cats.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+    showToast('Category already exists!', 'error'); return;
+  }
+  
+  const icon = autoIcon(name);
+  cats.push({ name, icon, desc });
+  saveCategories(cats);
+  
+  // Update blog category dropdown
+  updateCatDropdown();
+  loadCatList();
+  
+  document.getElementById('newCatName').value = '';
+  document.getElementById('newCatDesc').value = '';
+  showToast(`${icon} "${name}" category added!`);
+}
+
+function deleteCategory(idx) {
+  if (!confirm('Delete this category?')) return;
+  const cats = getCategories();
+  cats.splice(idx, 1);
+  saveCategories(cats);
+  updateCatDropdown();
+  loadCatList();
+  showToast('Category deleted!');
+}
+
+function loadCatList() {
+  const cats = getCategories();
+  const el = document.getElementById('catList');
+  if (!el) return;
+  el.innerHTML = cats.map((c, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:24px;">${c.icon}</span>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:500;">${c.name}</div>
+        <div style="font-size:12px;color:var(--muted);">${c.desc || 'No description'}</div>
+      </div>
+      <button class="btn btn-outline" style="padding:4px 10px;font-size:12px;" onclick="deleteCategory(${i})">🗑</button>
+    </div>`).join('');
+}
+
+function updateCatDropdown() {
+  const cats = getCategories();
+  const sel = document.getElementById('blogCat');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = cats.map(c => `<option value="${c.name}" ${c.name===current?'selected':''}>${c.icon} ${c.name}</option>`).join('');
+}
+
 // ─── INIT ───────────────────────────────────
 loadDashboard();
+updateCatDropdown();
 </script>
 </body>
 </html>
