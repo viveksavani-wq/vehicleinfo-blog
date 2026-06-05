@@ -125,12 +125,8 @@ footer { text-align: center; padding: 2rem; font-size: 13px; color: var(--text-m
 
 <nav>
   <div class="nav-logo">🚗 VehicleInfo</div>
-  <div class="nav-links">
+  <div class="nav-links" id="navLinks">
     <a href="#" onclick="filterCat('all')">Home</a>
-    <a href="#" onclick="filterCat('RC & Registration')">RC</a>
-    <a href="#" onclick="filterCat('Challan')">Challan</a>
-    <a href="#" onclick="filterCat('Insurance')">Insurance</a>
-    <a href="#" onclick="filterCat('FASTag')">FASTag</a>
   </div>
 </nav>
 
@@ -140,14 +136,8 @@ footer { text-align: center; padding: 2rem; font-size: 13px; color: var(--text-m
   <p>RC, Challan, Insurance, FASTag, Sale Transfer — All in one place</p>
 </div>
 
-<div class="categories-bar">
+<div class="categories-bar" id="catsBar">
   <button class="cat-btn active" onclick="filterCat('all', this)">All Posts</button>
-  <button class="cat-btn" onclick="filterCat('RC & Registration', this)">🪪 RC & Registration</button>
-  <button class="cat-btn" onclick="filterCat('Challan', this)">⚠️ Challan</button>
-  <button class="cat-btn" onclick="filterCat('Insurance', this)">🛡️ Insurance</button>
-  <button class="cat-btn" onclick="filterCat('FASTag', this)">💳 FASTag</button>
-  <button class="cat-btn" onclick="filterCat('Car Sale', this)">🔄 Car Sale</button>
-  <button class="cat-btn" onclick="filterCat('Owner', this)">👤 Owner</button>
 </div>
 
 <div class="container">
@@ -201,7 +191,25 @@ const POSTS_KEY = 'vehicleblog_posts';
 let allPosts = [];
 let currentPost = null;
 
-const catEmojis = { 'RC & Registration':'🪪','Challan':'⚠️','Insurance':'🛡️','FASTag':'💳','Car Sale':'🔄','Owner':'👤' };
+// Load categories from localStorage (set by admin panel)
+function getCategories() {
+  const DEFAULT = [
+    { name: 'RC & Registration', icon: '🪪' },
+    { name: 'Challan', icon: '⚠️' },
+    { name: 'Insurance', icon: '🛡️' },
+    { name: 'FASTag', icon: '💳' },
+    { name: 'Car Sale', icon: '🔄' },
+    { name: 'Owner', icon: '👤' },
+  ];
+  try { return JSON.parse(localStorage.getItem('vb_categories') || 'null') || DEFAULT; }
+  catch { return DEFAULT; }
+}
+let catEmojis = {};
+function refreshCatEmojis() {
+  catEmojis = {};
+  getCategories().forEach(c => { catEmojis[c.name] = c.icon; });
+}
+refreshCatEmojis();
 
 function getPosts() {
   try { return JSON.parse(localStorage.getItem(POSTS_KEY) || '[]'); } catch { return []; }
@@ -295,10 +303,29 @@ function loadTrending() {
 }
 
 // Load posts from localStorage (set by admin tool)
+function buildCategories() {
+  refreshCatEmojis();
+  // Show only categories that have posts
+  const usedCats = [...new Set(allPosts.map(p => p.category))];
+  // Get all defined categories in order, filter to used ones
+  const allCats = getCategories().filter(c => usedCats.includes(c.name));
+  // Add any post categories not in defined list
+  usedCats.forEach(cat => { if (!allCats.find(c => c.name === cat)) allCats.push({ name: cat, icon: '🚗' }); });
+
+  const bar = document.getElementById('catsBar');
+  const nav = document.getElementById('navLinks');
+  bar.innerHTML = '<button class="cat-btn active" onclick="filterCat('all', this)">All Posts</button>';
+  nav.innerHTML = '<a href="#" onclick="filterCat('all')">Home</a>';
+  
+  allCats.forEach(cat => {
+    bar.innerHTML += `<button class="cat-btn" onclick="filterCat('${cat.name}', this)">${cat.icon} ${cat.name}</button>`;
+    nav.innerHTML += `<a href="#" onclick="filterCat('${cat.name}')">${cat.name.split(' ')[0]}</a>`;
+  });
+}
+
 function init() {
   allPosts = getPosts();
   if (!allPosts.length) {
-    // Show sample post
     allPosts = [{
       title: "How to Check Your Vehicle RC Status Online in 2025",
       category: "RC & Registration",
@@ -308,6 +335,7 @@ function init() {
       readTime: '3'
     }];
   }
+  buildCategories();
   renderPosts(allPosts);
   loadTrending();
 }
