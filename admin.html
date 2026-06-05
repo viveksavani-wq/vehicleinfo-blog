@@ -232,6 +232,21 @@ textarea{resize:vertical;min-height:100px;}
           <textarea id="previewExcerpt" style="min-height:60px;"></textarea>
         </div>
         <div style="margin-bottom:1rem;">
+          <label>Blog Image</label>
+          <div id="previewImgBox" style="width:100%;height:220px;border-radius:8px;overflow:hidden;background:var(--bg);display:flex;align-items:center;justify-content:center;margin-bottom:0.75rem;position:relative;">
+            <img id="previewImg" src="" style="width:100%;height:100%;object-fit:cover;display:none;" onload="this.style.display='block';document.getElementById('imgLoading').style.display='none';">
+            <div id="imgLoading" style="font-size:13px;color:var(--muted);text-align:center;">🖼️<br>No image yet</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="autoGenerateImage()" style="flex:1;">🤖 Auto Generate Image</button>
+            <label class="btn btn-outline" style="flex:1;cursor:pointer;justify-content:center;">
+              📁 Upload Image
+              <input type="file" id="imgUpload" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+            </label>
+            <button class="btn btn-outline" onclick="clearImage()" style="padding:10px 14px;">🗑</button>
+          </div>
+        </div>
+        <div style="margin-bottom:1rem;">
           <label>Full Article</label>
           <div class="preview-box" id="previewBody"></div>
         </div>
@@ -483,9 +498,13 @@ Respond ONLY with valid JSON (no markdown, no backticks, no extra text):
     const text = data.choices?.[0]?.message?.content || '';
     const article = JSON.parse(text.replace(/```json|```/g,'').trim());
 
-    generatedPost = { ...article, category: cat, date: new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}), dateRaw: new Date().toISOString(), readTime: Math.ceil(article.body.replace(/<[^>]+>/g,'').split(' ').length / 200) };
+    generatedPost = { ...article, category: cat, date: new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}), dateRaw: new Date().toISOString(), readTime: Math.ceil(article.body.replace(/<[^>]+>/g,'').split(' ').length / 200), image: null };
 
     document.getElementById('previewTitle').value = article.title;
+    document.getElementById('previewImg').src = '';
+    document.getElementById('previewImg').style.display = 'none';
+    document.getElementById('imgLoading').innerHTML = '🖼️<br>Click Auto Generate or Upload Image';
+    document.getElementById('imgLoading').style.display = 'block';
     document.getElementById('previewExcerpt').value = article.excerpt;
     document.getElementById('previewBody').innerHTML = article.body;
     document.getElementById('previewCard').style.display = 'block';
@@ -662,6 +681,53 @@ function testTelegram() {
   const chatId = document.getElementById('tgChatId').value.trim();
   if (!token || !chatId) { showToast('Enter Token and Chat ID first!', 'error'); return; }
   sendTelegramMsg(token, chatId, '🚗 VehicleInfo Blog - Test message! ✅ Telegram alerts are working!');
+}
+
+
+// ─── IMAGE ──────────────────────────────
+function autoGenerateImage() {
+  if (!generatedPost) { showToast('Generate blog first!', 'error'); return; }
+  const query = encodeURIComponent(generatedPost.title + ' vehicle India road');
+  const url = `https://image.pollinations.ai/prompt/${query}?width=800&height=400&nologo=true&seed=${Date.now()}`;
+  const img = document.getElementById('previewImg');
+  const loading = document.getElementById('imgLoading');
+  loading.innerHTML = '⏳ Generating image...';
+  loading.style.display = 'block';
+  img.style.display = 'none';
+  img.src = url;
+  img.onload = () => {
+    img.style.display = 'block';
+    loading.style.display = 'none';
+    generatedPost.image = url;
+    showToast('🖼️ Image generated!');
+  };
+  img.onerror = () => {
+    loading.innerHTML = '❌ Failed. Try again.';
+  };
+}
+
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = document.getElementById('previewImg');
+    const loading = document.getElementById('imgLoading');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    loading.style.display = 'none';
+    if (generatedPost) generatedPost.image = e.target.result;
+    showToast('📁 Image uploaded!');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImage() {
+  document.getElementById('previewImg').src = '';
+  document.getElementById('previewImg').style.display = 'none';
+  document.getElementById('imgLoading').innerHTML = '🖼️<br>No image yet';
+  document.getElementById('imgLoading').style.display = 'block';
+  if (generatedPost) generatedPost.image = null;
 }
 
 // ─── INIT ───────────────────────────────────
