@@ -703,43 +703,83 @@ function autoGenerateImage() {
   if (!generatedPost) { showToast('Generate blog first!', 'error'); return; }
   const img = document.getElementById('previewImg');
   const loading = document.getElementById('imgLoading');
-  loading.innerHTML = '⏳ Loading image...';
+  loading.innerHTML = '⏳ Generating AI image...';
   loading.style.display = 'block';
   img.style.display = 'none';
 
-  // Category to Unsplash keyword mapping
-  const catMap = {
-    'RC & Registration': 'car-document',
-    'Challan': 'traffic-police',
-    'Insurance': 'car-insurance',
-    'FASTag': 'highway-toll',
-    'Car Sale': 'car-showroom',
-    'Owner': 'car-owner'
+  // Smart prompt based on category + title
+  const catPrompts = {
+    'RC & Registration': 'Indian RTO office vehicle registration certificate document official',
+    'Challan': 'Indian traffic police officer highway road challan fine penalty',
+    'Insurance': 'car vehicle insurance policy document India protection shield',
+    'FASTag': 'FASTag toll plaza highway India RFID sticker windshield car',
+    'Car Sale': 'car showroom India used car sale buy sell transfer ownership',
+    'Owner': 'Indian car owner vehicle registration document road'
   };
-  const keywords = ['car','vehicle','automobile','road','traffic','highway','india-road','transport'];
-  const keyword = keywords[Math.floor(Math.random() * keywords.length)];
-  const seed = Math.floor(Math.random() * 1000);
+
+  const basePrompt = catPrompts[generatedPost.category] || 'Indian vehicle road transport automobile';
+  // Extract key words from title
+  const titleWords = generatedPost.title
+    .replace(/how to|guide|complete|step by step|online|india|in|the|a|an|of|for|your|is|are|was|were/gi, '')
+    .trim()
+    .split(' ')
+    .slice(0, 4)
+    .join(' ');
+
+  const fullPrompt = encodeURIComponent(`${basePrompt} ${titleWords} realistic professional photography high quality`);
+  const seed = Date.now();
+
+  // Try Pollinations AI with smart prompt
+  const pollinationsUrl = `https://image.pollinations.ai/prompt/${fullPrompt}?width=800&height=450&nologo=true&seed=${seed}&model=flux`;
+
+  // Set timeout - if pollinations takes more than 15s, use Unsplash
+  const timeout = setTimeout(() => {
+    useFallbackImage(generatedPost.category);
+  }, 15000);
+
+  img.onload = () => {
+    clearTimeout(timeout);
+    img.style.display = 'block';
+    loading.style.display = 'none';
+    generatedPost.image = pollinationsUrl;
+    showToast('🖼️ AI Image generated!');
+  };
+
+  img.onerror = () => {
+    clearTimeout(timeout);
+    useFallbackImage(generatedPost.category);
+  };
+
+  img.src = pollinationsUrl;
+}
+
+function useFallbackImage(category) {
+  const img = document.getElementById('previewImg');
+  const loading = document.getElementById('imgLoading');
   
-  // Use Unsplash source (free, no API key needed)
-  const url = `https://source.unsplash.com/800x400/?${keyword},india&sig=${seed}`;
+  const catKeywords = {
+    'RC & Registration': 'car,registration,document',
+    'Challan': 'traffic,police,road',
+    'Insurance': 'car,insurance,protection',
+    'FASTag': 'highway,toll,road',
+    'Car Sale': 'car,showroom,automobile',
+    'Owner': 'car,vehicle,transport'
+  };
   
+  const keyword = catKeywords[category] || 'car,vehicle,india';
+  const seed = Math.floor(Math.random() * 900) + 100;
+  const url = `https://picsum.photos/seed/${seed}/800/450`;
+  
+  loading.innerHTML = '⏳ Loading image...';
   img.src = url;
   img.onload = () => {
     img.style.display = 'block';
     loading.style.display = 'none';
-    generatedPost.image = url;
-    showToast('🖼️ Image loaded!');
+    if (generatedPost) generatedPost.image = url;
+    showToast('🖼️ Image ready!');
   };
   img.onerror = () => {
-    // Fallback to picsum
-    const fallback = `https://picsum.photos/seed/${seed}/800/400`;
-    img.src = fallback;
-    generatedPost.image = fallback;
-    img.onload = () => {
-      img.style.display = 'block';
-      loading.style.display = 'none';
-      showToast('🖼️ Image loaded!');
-    };
+    loading.innerHTML = '❌ Failed. Try again.';
   };
 }
 
