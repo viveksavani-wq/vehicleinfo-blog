@@ -699,77 +699,62 @@ function testTelegram() {
 
 
 // ─── IMAGE ──────────────────────────────
-function autoGenerateImage() {
+async function autoGenerateImage() {
   if (!generatedPost) { showToast('Generate blog first!', 'error'); return; }
   const img = document.getElementById('previewImg');
   const loading = document.getElementById('imgLoading');
-  loading.innerHTML = '⏳ Generating AI image...';
+  loading.innerHTML = '⏳ Searching AI images...';
   loading.style.display = 'block';
   img.style.display = 'none';
 
-  // Smart prompt based on category + title
-  const catPrompts = {
-    'RC & Registration': 'Indian RTO office vehicle registration certificate document official',
-    'Challan': 'Indian traffic police officer highway road challan fine penalty',
-    'Insurance': 'car vehicle insurance policy document India protection shield',
-    'FASTag': 'FASTag toll plaza highway India RFID sticker windshield car',
-    'Car Sale': 'car showroom India used car sale buy sell transfer ownership',
-    'Owner': 'Indian car owner vehicle registration document road'
+  // Smart search query based on category + title
+  const catSearch = {
+    'RC & Registration': 'vehicle registration certificate RTO India',
+    'Challan': 'traffic police India road highway',
+    'Insurance': 'car insurance India vehicle protection',
+    'FASTag': 'toll plaza highway India fastag',
+    'Car Sale': 'car showroom India automobile sale',
+    'Owner': 'car owner India vehicle road'
   };
 
-  const basePrompt = catPrompts[generatedPost.category] || 'Indian vehicle road transport automobile';
-  // Extract key words from title
+  const base = catSearch[generatedPost.category] || 'India vehicle automobile road';
   const titleWords = generatedPost.title
-    .replace(/how to|guide|complete|step by step|online|india|in|the|a|an|of|for|your|is|are|was|were/gi, '')
-    .trim()
-    .split(' ')
-    .slice(0, 4)
-    .join(' ');
+    .replace(/how to|guide|complete|step|online|india|in|the|a|an|of|for|your/gi, '')
+    .trim().split(' ').slice(0,3).join(' ');
 
-  const fullPrompt = encodeURIComponent(`${basePrompt} ${titleWords} realistic professional photography high quality`);
-  const seed = Date.now();
+  const query = encodeURIComponent(`${titleWords} ${base}`);
 
-  // Try Pollinations AI with smart prompt
-  const pollinationsUrl = `https://image.pollinations.ai/prompt/${fullPrompt}?width=800&height=450&nologo=true&seed=${seed}&model=flux`;
-
-  // Set timeout - if pollinations takes more than 15s, use Unsplash
-  const timeout = setTimeout(() => {
+  try {
+    // Lexica.art free API - search AI generated images
+    const res = await fetch(`https://lexica.art/api/v1/search?q=${query}`);
+    const data = await res.json();
+    
+    if (data.images && data.images.length > 0) {
+      // Pick random from top 10 results
+      const pick = data.images[Math.floor(Math.random() * Math.min(10, data.images.length))];
+      const imageUrl = pick.src;
+      
+      img.src = imageUrl;
+      img.onload = () => {
+        img.style.display = 'block';
+        loading.style.display = 'none';
+        generatedPost.image = imageUrl;
+        showToast('🖼️ AI Image found!');
+      };
+      img.onerror = () => useFallbackImage(generatedPost.category);
+    } else {
+      useFallbackImage(generatedPost.category);
+    }
+  } catch(e) {
     useFallbackImage(generatedPost.category);
-  }, 15000);
-
-  img.onload = () => {
-    clearTimeout(timeout);
-    img.style.display = 'block';
-    loading.style.display = 'none';
-    generatedPost.image = pollinationsUrl;
-    showToast('🖼️ AI Image generated!');
-  };
-
-  img.onerror = () => {
-    clearTimeout(timeout);
-    useFallbackImage(generatedPost.category);
-  };
-
-  img.src = pollinationsUrl;
+  }
 }
 
 function useFallbackImage(category) {
   const img = document.getElementById('previewImg');
   const loading = document.getElementById('imgLoading');
-  
-  const catKeywords = {
-    'RC & Registration': 'car,registration,document',
-    'Challan': 'traffic,police,road',
-    'Insurance': 'car,insurance,protection',
-    'FASTag': 'highway,toll,road',
-    'Car Sale': 'car,showroom,automobile',
-    'Owner': 'car,vehicle,transport'
-  };
-  
-  const keyword = catKeywords[category] || 'car,vehicle,india';
   const seed = Math.floor(Math.random() * 900) + 100;
   const url = `https://picsum.photos/seed/${seed}/800/450`;
-  
   loading.innerHTML = '⏳ Loading image...';
   img.src = url;
   img.onload = () => {
@@ -778,9 +763,7 @@ function useFallbackImage(category) {
     if (generatedPost) generatedPost.image = url;
     showToast('🖼️ Image ready!');
   };
-  img.onerror = () => {
-    loading.innerHTML = '❌ Failed. Try again.';
-  };
+  img.onerror = () => { loading.innerHTML = '❌ Failed. Try again.'; };
 }
 
 function handleImageUpload(event) {
