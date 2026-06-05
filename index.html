@@ -58,11 +58,11 @@ nav {
 .cat-btn.active, .cat-btn:hover { background: var(--blue); color: white; border-color: var(--blue); }
 
 /* MAIN LAYOUT */
-.container { max-width: 1100px; margin: 0 auto; padding: 2rem; display: grid; grid-template-columns: 1fr 320px; gap: 2rem; }
+.container { max-width: 1200px; margin: 0 auto; padding: 2rem; display: grid; grid-template-columns: 1fr 280px; gap: 2rem; }
 @media(max-width:768px){ .container { grid-template-columns: 1fr; } }
 
 /* POSTS */
-.posts-grid { display: grid; gap: 1.5rem; }
+.posts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; } @media(max-width:900px){ .posts-grid { grid-template-columns: repeat(2,1fr); } } @media(max-width:600px){ .posts-grid { grid-template-columns: 1fr; } }
 .post-card {
   background: var(--white);
   border: 1px solid var(--border);
@@ -72,7 +72,7 @@ nav {
   cursor: pointer;
 }
 .post-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(26,86,219,0.1); }
-.post-img { width: 100%; height: 200px; object-fit: cover; background: linear-gradient(135deg, #e8f0fe, #c7d7fc); display: flex; align-items: center; justify-content: center; font-size: 48px; }
+.post-img { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg, #e8f0fe, #c7d7fc); display: flex; align-items: center; justify-content: center; font-size: 48px; overflow:hidden; position:relative; } .post-img img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .post-body { padding: 1.25rem; }
 .post-cat { display: inline-block; background: var(--blue-light); color: var(--blue); font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
 .post-title { font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 600; margin-bottom: 0.5rem; line-height: 1.4; }
@@ -99,7 +99,7 @@ nav {
 .modal-cat { background: var(--blue-light); color: var(--blue); font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; margin-bottom: 0.5rem; display: inline-block; }
 .modal-title { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; line-height: 1.3; }
 .modal-close { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; width: 32px; height: 32px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 1rem; }
-.modal-img { width: 100%; height: 260px; object-fit: cover; background: linear-gradient(135deg, #e8f0fe, #c7d7fc); display: flex; align-items: center; justify-content: center; font-size: 64px; }
+.modal-img { width: 100%; aspect-ratio: 16/9; background: linear-gradient(135deg, #e8f0fe, #c7d7fc); display: flex; align-items: center; justify-content: center; font-size: 64px; overflow:hidden; position:relative; } .modal-img img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .modal-body { padding: 1.5rem; line-height: 1.8; font-size: 15px; color: #374151; }
 .modal-body h3 { font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 600; margin: 1.25rem 0 0.5rem; color: var(--text); }
 .modal-body p { margin-bottom: 0.75rem; }
@@ -219,9 +219,11 @@ function renderPosts(posts) {
   }
   grid.innerHTML = posts.map((p, i) => `
     <div class="post-card" onclick="openPost(${i})">
-      <div class="post-img" style="position:relative;overflow:hidden;">
-        ${p.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : ''}
-        <span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;${p.image?'display:none':''}"> ${catEmojis[p.category] || '🚗'}</span>
+      <div class="post-img">
+        ${p.image 
+          ? `<img src="${p.image}" alt="${p.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span style="display:none;font-size:48px;">${catEmojis[p.category]||'🚗'}</span>`
+          : `<span>${catEmojis[p.category]||'🚗'}</span>`
+        }
       </div>
       <div class="post-body">
         <span class="post-cat">${p.category}</span>
@@ -229,7 +231,7 @@ function renderPosts(posts) {
         <div class="post-excerpt">${p.excerpt}</div>
         <div class="post-meta">
           <span>📅 ${p.date}</span>
-          <span>⏱ ${p.readTime || '3'} min read</span>
+          <span>⏱ ${p.readTime||'3'} min read</span>
         </div>
       </div>
     </div>`).join('');
@@ -247,10 +249,11 @@ function openPost(idx) {
   currentPost = p;
   document.getElementById('mCat').textContent = (catEmojis[p.category] || '') + ' ' + p.category;
   document.getElementById('mTitle').textContent = p.title;
+  const mImg = document.getElementById('mImg');
   if (p.image) {
-    document.getElementById('mImg').innerHTML = `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div style=\"display:flex;align-items:center;justify-content:center;height:100%;font-size:64px;\">${catEmojis[p.category]||'🚗'}</div>'">`;
+    mImg.innerHTML = `<img src="${p.image}" alt="${p.title}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"><span style="font-size:64px;">${catEmojis[p.category]||'🚗'}</span>`;
   } else {
-    document.getElementById('mImg').textContent = catEmojis[p.category] || '🚗';
+    mImg.innerHTML = `<span style="font-size:64px;">${catEmojis[p.category]||'🚗'}</span>`;
   }
   document.getElementById('mBody').innerHTML = p.body;
   document.getElementById('waShareBtn').onclick = () => {
