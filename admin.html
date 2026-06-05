@@ -687,22 +687,45 @@ function testTelegram() {
 // ─── IMAGE ──────────────────────────────
 function autoGenerateImage() {
   if (!generatedPost) { showToast('Generate blog first!', 'error'); return; }
-  const query = encodeURIComponent(generatedPost.title + ' vehicle India road');
-  const url = `https://image.pollinations.ai/prompt/${query}?width=800&height=400&nologo=true&seed=${Date.now()}`;
   const img = document.getElementById('previewImg');
   const loading = document.getElementById('imgLoading');
-  loading.innerHTML = '⏳ Generating image...';
+  loading.innerHTML = '⏳ Loading image...';
   loading.style.display = 'block';
   img.style.display = 'none';
+
+  // Category to Unsplash keyword mapping
+  const catMap = {
+    'RC & Registration': 'car-document',
+    'Challan': 'traffic-police',
+    'Insurance': 'car-insurance',
+    'FASTag': 'highway-toll',
+    'Car Sale': 'car-showroom',
+    'Owner': 'car-owner'
+  };
+  const keywords = ['car','vehicle','automobile','road','traffic','highway','india-road','transport'];
+  const keyword = keywords[Math.floor(Math.random() * keywords.length)];
+  const seed = Math.floor(Math.random() * 1000);
+  
+  // Use Unsplash source (free, no API key needed)
+  const url = `https://source.unsplash.com/800x400/?${keyword},india&sig=${seed}`;
+  
   img.src = url;
   img.onload = () => {
     img.style.display = 'block';
     loading.style.display = 'none';
     generatedPost.image = url;
-    showToast('🖼️ Image generated!');
+    showToast('🖼️ Image loaded!');
   };
   img.onerror = () => {
-    loading.innerHTML = '❌ Failed. Try again.';
+    // Fallback to picsum
+    const fallback = `https://picsum.photos/seed/${seed}/800/400`;
+    img.src = fallback;
+    generatedPost.image = fallback;
+    img.onload = () => {
+      img.style.display = 'block';
+      loading.style.display = 'none';
+      showToast('🖼️ Image loaded!');
+    };
   };
 }
 
